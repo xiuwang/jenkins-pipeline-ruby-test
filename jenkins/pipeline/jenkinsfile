@@ -1,6 +1,13 @@
-node {
-stage 'build'
-openshiftBuild(buildConfig: 'ruby-sample-build', showBuildLogs: 'true')
-stage 'deploy'
-openshiftDeploy(deploymentConfig: 'frontend')
-}
+node('nodejs') {
+                    stage('build') {
+                      openshift.withCluster() {
+                         openshift.withProject() {
+                            def bld = openshift.startBuild('ruby-sample-build')
+                            bld.untilEach {
+                              return it.object().status.phase == "Running"
+                            }
+                            bld.logs('-f')
+                         }  
+                      }
+                    }
+                 }
